@@ -1,0 +1,1053 @@
+
+<html>
+    <head>
+    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.3.1/css/all.css'><link rel="stylesheet" href="./style.css">
+    <style>
+    *:focus {
+      outline: none;
+    }
+    
+    body {
+      font-family: Helvetica, Arial;
+      margin: 0;
+      background-color: #ffeff5;
+    }
+    
+    #app-cover {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      width: 430px;
+      height: 100px;
+      margin: -4px auto;
+    }
+    
+    #bg-artwork {
+      position: fixed;
+      top: -30px;
+      right: -30px;
+      bottom: -30px;
+      left: -30px;
+      background-image: url("https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: 50%;
+      filter: blur(40px);
+      -webkit-filter: blur(40px);
+      z-index: 1;
+    }
+    
+    #bg-layer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-color: #fff;
+      opacity: 0.51;
+      z-index: 2;
+    }
+    
+    #player {
+      position: relative;
+      height: 100%;
+      z-index: 3;
+    }
+    
+    #player-track {
+      position: absolute;
+      top: 0;
+      right: 15px;
+      left: 15px;
+      padding: 13px 22px 10px 184px;
+      background-color: #fff7f7;
+      border-radius: 15px 15px 0 0;
+      transition: 0.3s ease top;
+      z-index: 1;
+    }
+    
+    #player-track.active {
+      top: -92px;
+    }
+    
+    #album-name {
+      color: #54576f;
+      font-size: 17px;
+      font-weight: bold;
+    }
+    
+    #track-name {
+      color: #acaebd;
+      font-size: 13px;
+      margin: 2px 0 13px 0;
+    }
+    
+    #track-time {
+      height: 12px;
+      margin-bottom: 3px;
+      overflow: hidden;
+    }
+    
+    #current-time {
+      float: left;
+    }
+    
+    #track-length {
+      float: right;
+    }
+    
+    #current-time,
+    #track-length {
+      color: transparent;
+      font-size: 11px;
+      background-color: #ffe8ee;
+      border-radius: 10px;
+      transition: 0.3s ease all;
+    }
+    
+    #track-time.active #current-time,
+    #track-time.active #track-length {
+      color: #f86d92;
+      background-color: transparent;
+    }
+    
+    #s-area,
+    #seek-bar {
+      position: relative;
+      height: 4px;
+      border-radius: 4px;
+    }
+    
+    #s-area {
+      background-color: #ffe8ee;
+      cursor: pointer;
+    }
+    
+    #ins-time {
+      position: absolute;
+      top: -29px;
+      color: #fff;
+      font-size: 12px;
+      white-space: pre;
+      padding: 5px 6px;
+      border-radius: 4px;
+      display: none;
+    }
+    
+    #s-hover {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      opacity: 0.2;
+      z-index: 2;
+    }
+    
+    #ins-time,
+    #s-hover {
+      background-color: #3b3d50;
+    }
+    
+    #seek-bar {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      background-color: #fd6d94;
+      transition: 0.2s ease width;
+      z-index: 1;
+    }
+    
+    #player-content {
+      position: relative;
+      height: 100%;
+      background-color: #fff;
+      box-shadow: 0 30px 80px #656565;
+      border-radius: 15px;
+      z-index: 2;
+    }
+    
+    #album-art {
+      position: absolute;
+      top: -40px;
+      width: 115px;
+      height: 115px;
+      margin-left: 40px;
+      transform: rotateZ(0);
+      transition: 0.3s ease all;
+      box-shadow: 0 0 0 10px #fff;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    
+    #album-art.active {
+      top: -60px;
+      box-shadow: 0 0 0 4px #fff7f7, 0 30px 50px -15px #afb7c1;
+    }
+    
+    #album-art:before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      margin: -10px auto 0 auto;
+      background-color: #d6dee7;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 2px #fff;
+      z-index: 2;
+    }
+    
+    #album-art img {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      z-index: -1;
+    }
+    
+    #album-art img.active {
+      opacity: 1;
+      z-index: 1;
+    }
+    
+    #album-art.active img.active {
+      z-index: 1;
+      animation: rotateAlbumArt 3s linear 0s infinite forwards;
+    }
+    
+    @keyframes rotateAlbumArt {
+      0% {
+        transform: rotateZ(0);
+      }
+      100% {
+        transform: rotateZ(360deg);
+      }
+    }
+    
+    #buffer-box {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      height: 13px;
+      color: #1f1f1f;
+      font-size: 13px;
+      font-family: Helvetica;
+      text-align: center;
+      font-weight: bold;
+      line-height: 1;
+      padding: 6px;
+      margin: -12px auto 0 auto;
+      background-color: rgba(255, 255, 255, 0.19);
+      opacity: 0;
+      z-index: 2;
+    }
+    
+    #album-art img,
+    #buffer-box {
+      transition: 0.1s linear all;
+    }
+    
+    #album-art.buffering img {
+      opacity: 0.25;
+    }
+    
+    #album-art.buffering img.active {
+      opacity: 0.8;
+      filter: blur(2px);
+      -webkit-filter: blur(2px);
+    }
+    
+    #album-art.buffering #buffer-box {
+      opacity: 1;
+    }
+    
+    #player-controls {
+      width: 250px;
+      height: 100%;
+      margin: 0 5px 0 141px;
+      float: right;
+      overflow: hidden;
+    }
+    
+    .control {
+      width: 33.333%;
+      float: left;
+      padding: 12px 0;
+    }
+    
+    .button {
+      width: 26px;
+      height: 26px;
+      padding: 25px;
+      background-color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    
+    .button i {
+      display: block;
+      color: #d6dee7;
+      font-size: 26px;
+      text-align: center;
+      line-height: 1;
+    }
+    
+    .button,
+    .button i {
+      transition: 0.2s ease all;
+    }
+    
+    .button:hover {
+      background-color: #d6d6de;
+    }
+    
+    .button:hover i {
+      color: #fff;
+    }
+    
+    </style>
+    </head>
+    <body>
+    
+    <div id="app-cover">
+      <div id="bg-artwork"></div>
+      <div id="bg-layer"></div>
+      <div id="player">
+        <div id="player-track">
+          <div id="album-name"></div>
+          <div id="track-name"></div>
+          <div id="track-time">
+            <div id="current-time"></div>
+            <div id="track-length"></div>
+          </div>
+          <div id="s-area">
+            <div id="ins-time"></div>
+            <div id="s-hover"></div>
+            <div id="seek-bar"></div>
+          </div>
+        </div>
+        <div id="player-content"> <!--primero crear aqui la cantidad de div necesarios-->
+          <div id="album-art">
+            <img src="https://th.bing.com/th/id/OIP.9CwMGD80O2vGWKCwuakZtgHaHa?w=169&h=180&c=7&r=0&o=5&pid=1.7" class="active" id="_1"> 
+            <img src="https://th.bing.com/th/id/OIP.HQVqjC28wQ-zoJsUfOuOpgHaHa?w=178&h=180&c=7&r=0&o=5&pid=1.7" id="_2">
+            <img src="https://pbs.twimg.com/media/DMmQMLFUIAA2rDF.jpg" id="_3">
+            <img src="https://pbs.twimg.com/media/DMmQMLFUIAA2rDF.jpg" id="_4">
+            <img src="https://pbs.twimg.com/media/DMmQMLFUIAA2rDF.jpg" id="_5">
+            <img src="https://th.bing.com/th/id/OIP.HQVqjC28wQ-zoJsUfOuOpgHaHa?w=178&h=180&c=7&r=0&o=5&pid=1.7" id="_6">
+            <img src="https://th.bing.com/th/id/OIP.HQVqjC28wQ-zoJsUfOuOpgHaHa?w=178&h=180&c=7&r=0&o=5&pid=1.7" id="_7">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_8">
+            <img src="https://th.bing.com/th/id/OIP.HQVqjC28wQ-zoJsUfOuOpgHaHa?w=178&h=180&c=7&r=0&o=5&pid=1.7" id="_9">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_10">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_11">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_12">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_13">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_14">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_15">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_16">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_17">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_18">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_19">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_20">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_21">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_22">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_23">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_24">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_25">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_26">
+            <img src="https://th.bing.com/th/id/OIP.gvm_P6ke6UudWPNV2KDJCgAAAA?pid=ImgDet&w=300&h=361&rs=1" id="_27">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_28">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_29">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_30">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_31">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_32">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_33">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_34">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_35">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_36">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_37">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_38">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_39">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_40">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_41">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_42">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_43">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_44">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_45">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_46">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_47">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_48">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_49">
+            <img src="https://th.bing.com/th/id/OIP.gvm_P6ke6UudWPNV2KDJCgAAAA?pid=ImgDet&w=300&h=361&rs=1" id="_50">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_51">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_52">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_53">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_54">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_55">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_56">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_57">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_58">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_59">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_60">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_61">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_62">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_63">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_64">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_65">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_66">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_67">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_68">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_69">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_70">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_71">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_72">
+            <img src="https://th.bing.com/th/id/OIP.gvm_P6ke6UudWPNV2KDJCgAAAA?pid=ImgDet&w=300&h=361&rs=1" id="_73">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_74">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_75">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_76">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_77">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_78">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_79">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_80">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_81">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_82">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_83">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_84">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_85">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_86">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_87">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_88">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_89">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_90">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_91">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_92">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_93">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_94">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_95">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_96">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_97">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_98">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_99">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_100">
+            <img src="https://th.bing.com/th/id/OIP.gvm_P6ke6UudWPNV2KDJCgAAAA?pid=ImgDet&w=300&h=361&rs=1" class="active" id="_101"> 
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_102">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_103">
+            <img src="https://th.bing.com/th/id/OIP.gvm_P6ke6UudWPNV2KDJCgAAAA?pid=ImgDet&w=300&h=361&rs=1" id="_104">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_105">
+            <img src="https://i.pinimg.com/474x/b3/c8/af/b3c8af2642917e2a113a9e1c383523ba.jpg" id="_106">
+            <img src="https://th.bing.com/th/id/OIP.gvm_P6ke6UudWPNV2KDJCgAAAA?pid=ImgDet&w=300&h=361&rs=1" class="active" id="_107"> 
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_108">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_109">
+            <img src="https://th.bing.com/th/id/OIP.HQVqjC28wQ-zoJsUfOuOpgHaHa?w=178&h=180&c=7&r=0&o=5&pid=1.7" id="_110">
+            <img src="https://i.pinimg.com/236x/5b/eb/00/5beb00beb7307562030cc25d75ca966d.jpg" id="_111">
+            <img src="https://th.bing.com/th/id/OIP.9CwMGD80O2vGWKCwuakZtgHaHa?w=169&h=180&c=7&r=0&o=5&pid=1.7" id="_112">
+
+
+            <div id="buffer-box">Loading ...</div>
+          </div>
+          <div id="player-controls">
+            <div class="control">
+              <div class="button" id="play-previous">
+                <i class="fas fa-backward"></i>
+              </div>
+            </div>
+            <div class="control">
+              <div class="button" id="play-pause-button">
+                <i class="fas fa-play"></i>
+              </div>
+            </div>
+            <div class="control">
+              <div class="button" id="play-next">
+                <i class="fas fa-forward"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script>
+    $(function () {
+      var playerTrack = $("#player-track"),
+        bgArtwork = $("#bg-artwork"),
+        bgArtworkUrl,
+        albumName = $("#album-name"),
+        trackName = $("#track-name"),
+        albumArt = $("#album-art"),
+        sArea = $("#s-area"),
+        seekBar = $("#seek-bar"),
+        trackTime = $("#track-time"),
+        insTime = $("#ins-time"),
+        sHover = $("#s-hover"),
+        playPauseButton = $("#play-pause-button"),
+        i = playPauseButton.find("i"),
+        tProgress = $("#current-time"),
+        tTime = $("#track-length"),
+        seekT,
+        seekLoc,
+        seekBarPos,
+        cM,
+        ctMinutes,
+        ctSeconds,
+        curMinutes,
+        curSeconds,
+        durMinutes,
+        durSeconds,
+        playProgress,
+        bTime,
+        nTime = 0,
+        buffInterval = null,
+        tFlag = false,
+        albums = [ /*Mejor aqui los Nombres de las Canciones*/
+          "21 ",
+          "2nd Thots ",
+          "NXT 2 U ",
+          "Tik Tok",
+          "WOW ",
+          "All I Wanna Do",
+          "Alone Tonight",
+          "NA NA NA",
+          "Aquaman ",
+          "Counting Stars",
+          "BAD SAD AND MAD",
+          "I'm The One",
+          "Nae Tat",
+          "I'll Wait For You",
+          "Be Without You",
+          "Don't Move",
+          "Tell Me",
+          "The Boy Is Mine",
+          "Buy U a Drank ",
+          "She Said ",
+          "Control Me ",
+          "Cereal ",
+          "Tip Toe",
+          "Half Moon ",
+          "I'm Not Sorry ",
+          "하루살이",
+          "Jasmine ",
+          "Martini Blue",
+          "Forever ",
+          "Differences ",
+          "She Got It ",
+          "Don't Matter",
+          "Dope Lovers ",
+          "Drive ",
+          "FLY ",
+          "When I See U ",
+          "Feauture ",
+          "Forever ",
+          "I Don't Love You",
+          "I Got It",
+          "Homebody",
+          "Hotline Bling",
+          "I'm Bad Too",
+          "I Don't Disappoint",
+          "I Got This",
+          "I Love It",
+          "I'll Make Love To You",
+          "Instagram",
+          "B.T.W.",
+          "Do What We Do",
+          "JOE",
+          "For the Weekend",
+          "Patience",
+          "GANADARA",
+          "If I Was Your Man",
+          "Mmmh",
+          "Love",
+          "Kiss Me Thru The Phone",
+          "Laputa",
+          "Limousine",
+          "Can´t Sleep",
+          "Think About Chu",
+          "Late Night",
+          "BODY",
+          "Me Like You",
+          "Me Like You",
+          "How",
+          "NEED HER",
+          "Nerves",
+          "No Blueberries",
+          "No Blueberries",
+          "I am Yours",
+          "Only One",
+          "COCO BOTTLE",
+          "Shy (eh o)",
+          "Flaker",
+          "Pour Up",
+          "Aphrodite",
+          "Replay",
+          "Scaredy Cat",
+          "IFFY",
+          "Slow Down",
+          "Snap Out of It",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Turn Off Your Phone",
+          "TISSUE",
+          "Pour Up"
+        ],
+        trackNames = [ /*Nombre de los Artistas*/
+          "DEAN",
+          "Jay Park ",
+          "3RACHA ",
+          "3RACHA ",
+          "3RACHA ",
+          "Jay Park ",
+          "Jay Park ",
+          "Alsa ",
+          "Jay Park ",
+          "BEO Ft. Beenzino ",
+          "BIBI",
+          "BLOO",
+          "BLOO",
+          "BLOO",
+          "Mary J. Blige ",
+          "Block B",
+          "Bobby V",
+          "Brandy",
+          "T-Pain ",
+          "Crush (With BIBI) ",
+          "Colde",
+          "Crush ",
+          "Crush ",
+          "DEAN ",
+          "DEAN ",
+          "DEAN ",
+          "DPR LIVE",
+          "DPR LIVE",
+          "Damage ",
+          "Ginuwine ",
+          "DINGO X BIBI ",
+          "Akon ",
+          "DPR IAN ",
+          "Jay Park Ft. GRAY ",
+          "Ph-1 ",
+          "Fantasia ",
+          "Ph-1 Ft. Cha Cha Malone",
+          "Jay Park Ft. Cha Cha Malone",
+          "GRAY ",
+          "SKZ Han ",
+          "Ph-1",
+          "Sam Smith",
+          "Hwasa Ft. DPR LIVE",
+          "Jay Park",
+          "Jay Park",
+          "DEAN",
+          "Boys II Men",
+          "DEAN",
+          "Jay B",
+          "Jay Park",
+          "Sik-K",
+          "JUNNY",
+          "JUNNY",
+          "Jay Park",
+          "Joe",
+          "KAI",
+          "Keyshia Cole",
+          "Soulja Boy, Sammie",
+          "DPR LIVE",
+          "Jay Park",
+          "Loco",
+          "Loco",
+          "GRAY, Loco",
+          "MINO",
+          "Jay Park (Korean)",
+          "Jay Park",
+          "Milli",
+          "Sik-K",
+          "DPR IAN",
+          "DPR IAN, CL",
+          "DPR IAN",
+          "OVAN",
+          "Jay Park",
+          "PENOMECO",
+          "PENOMECO",
+          "Ph-1",
+          "DEAN",
+          "RINI",
+          "Jay Park",
+          "DPR IAN",
+          "Sik-K",
+          "Bobby V.",
+          "Arctic Monkeys",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "JAY PARK",
+          "TERRY",
+          "DEAN"
+        ],
+        albumArtworks = ["_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_11", "_12", "_13", "_14", "_15", "_16","_17","_18","_19","_20","_21","_22","_23","_24","_25","_26","_27","_28","_29","_30","_31","_32","_33","_34","_35","_36","_37","_38","_39","_40","_41","_42","_43","_44","_45","_46","_47","_48","_49","_50","_51","_52","_53","_54","_55","_56","_57","_58","_59","_60","_61","_62","_63","_64","_65","_66","_67","_68","_69","_70","_71","_72","_73","_74","_75","_76","_77","_78","_79","_80","_81","_82","_83","_84","_85","_86","_87","_88","_89","_90","_91","_92","_93","_94","_95","_96","_97","_98","_99","_100","_101","_102","_103","_104","_105","_106","_107","_108","_109","_110","_111","_112"], /*Agregagar la cantidad de canciones */
+        trackUrl = [  /*agregar el link de las canciones*/
+          "https://github.com/Carol047/Embed/blob/main/21.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/2nd%20Thots.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/3RACHA%20%20-%20NXT%202%20U%20(Prod.%20CB97).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/3RACHA%20-%20Tik%20Tok%20(Prod.CB97).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/3RACHA%20-%20WOW%20(Prod.%20%20SPEARB).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/All%20I%20Wanna%20Do.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Alone%20Tonight%20(feat.%20Sik-K).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Alsa%20-%20NA%20NA%20NA.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Aquaman.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/BEO%20-%20Counting%20Stars%20(Feat.%20Beenzino).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/BIBI%20-%20BAD%20SAD%20AND%20MAD.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/BLOO%20-%20Im%20the%20one.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/BLOO%20-%20Nae%20Tat.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/BLOO%20-%20but%20Ill%20wait%20for%20you.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Be%20Without%20You%20Mary%20J.%20Blige.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Block%20B%20-%20Dont%20move.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Bobby%20V.%20-%20Tell%20Me.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Brandy%20-%20The%20Boy%20Is%20Mine.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Buy%20U%20a%20Drank%20T-Pain.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/CRUSH%20-%20She%20said%20(with%20BIBI).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Colde%20-%20Control%20Me.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Crush%20-%20Cereal.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Crush%20-%20Tip%20Toe.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/D%20(Half%20Moon).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/DEAN%20-%20Im%20Not%20Sorry.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/DEAN%20-%20%ED%95%98%EB%A3%A8%EC%82%B4%EC%9D%B4.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/DPR%20LIVE%20-%20Jasmine.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/DPR%20LIVE%20-%20Martini%20Blue.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Damage%20-%20Forever.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Differences%20Ginuwine.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Dingo%20X%20BIBI%20-%20she%20got%20it.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Don't%20Matter%20Akon.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Dope%20Lovers.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Drive%20(feat.%20Gray).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/FLY%20sik-k.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Fantasia%20-%20When%20I%20See%20U.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Feature%20(feat.%20Cha%20Cha%20Malone).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Forever%20(with%20DJ%20Ale%20Mora)%20%5Bfeat.%20Cha%20Cha%20Malone%5D.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/GRAY%20-%20I%20Dont%20Love%20You%20(Feat.%20Coogie).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/HAN%20_I%20GOT%20IT_%20_%20%5BStray%20Kids%20_%20SKZ-RECORD%5D.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Homebody%20ph-1.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Hotline%20Bling%20(Sam%20Smith).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Hwa%20Sa%20-%20Im%20bad%20too%20(Feat.%20DPR%20LIVE).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/I%20Don%E2%80%99t%20Disappoint.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/I%20Got%20This.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/I%20Love%20It%20Dean.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/I'll%20Make%20Love%20To%20You.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Instagram%20Dean.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/JAY%20B%20-%20B.T.W%20(feat.%20Jay%20Park).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/JAY%20PARK%20-%20Do%20What%20We%20Do%20%5Bsub.%20espa%C3%B1ol%5D.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/JOE.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/JUNNY%20-%20For%20the%20Weekend.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/JUNNY%20-%20Patience.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Jay%20Park%20-%20GANADARA%20(Feat.%20IU).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Joe%20-%20If%20I%20Was%20Your%20Man.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/KAI%20-%20Mmmh.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Keyshia%20Cole%20-%20Love.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Kiss%20Me%20Thru%20The%20Phone.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Laputa%20(Feat.%20Crush)%20DPR%20LIVE.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Limousine%20(feat.%20KRNFX).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Loco%20-%20Cant%20Sleep.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Loco%20Think%20About%20Chu.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Loco,%20GRAY%20%20Late%20Night.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/MINO%20-%20BODY.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Me%20Like%20Yuh%20(feat.%20Hoody)%20%5BKorean%20Version%5D.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Me%20Like%20Yuh.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Milli%20-%20How.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/NEED%20HER.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Nerves.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/No%20Blueberries%20DPR%20Ian.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/No%20Blueberries.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/OVAN%20-%20I%20Am%20Yours.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Only%20One%20(feat.%20Raz%20Simone).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/PENOMECO%20%20COCO%20BOTTLE.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/PENOMECO%20-%20Shy%20(eh%20o).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Ph-1%20Flaker.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Pour%20Up.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/RINI%20-%20Aphrodite.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Replay.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Scaredy%20Cat.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Sik-K%20-%20iffy%20(Prod.%20GroovyRoom).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Slow%20Down%20(12_%20Version).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Snap%20Out%20Of%20It.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Snoh%20Aalegra%20-%20I%20want%20you%20around%20(slowed%20%20%20reverb).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/So%20Beautiful%20DPR%20Ian.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/So%20Into%20You%20Tamia.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Solo%20(feat.%20Hoody).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Stray%20Kids%20-%20Maze%20of%20Memories.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Stray%20Kids%20-%20Silent%20Cry.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/The%20Weekend%2088%20Rising,%20BIBI.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Trey%20Songz%20-%20Bottoms%20Up%20(feat.%20Nicki%20Minaj).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/Vedo%20-%20You%20Got%20It.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/WayV%20-%20Love%20Talk%20-%20English%20Version.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/What%202%20Do%20Dean.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/ZICO%20-%20Summer%20Hate%20(Feat.%20Rain).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/don't%20Loco%20&%20Hwasa.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/ella%20mai%20-%20trip%EF%B9%9Dslowed%20%20%20reverb%EF%B9%9E.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/ne-yo%20-%20mad%20(slowed%20%20%20reverb).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/ne-yo%20-%20so%20sick%EF%B9%9Dslowed%20%20%20reverb%EF%B9%9E.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/ne-yo%20-%20so%20sick%EF%B9%9Dslowed%20%20%20reverb%EF%B9%9E.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/pH-1%20-%20Cupid.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/pH-1%20-%20Tel%C3%A9fono%20Remix.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/sakehands%20(Feat.%20Good%20Intent)%20-%20PLASTIC.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/summer%20walker%20&%20drake%20-%20girls%20need%20love%EF%B9%9Dslowed%20reverb%EF%B9%9E.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/woo%20ah%20Crush.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%EA%B3%81%EC%97%90%20%EC%9E%88%EC%96%B4%EC%A3%BC%EA%B8%B8%20Stay%20with%20Me.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%EB%A8%BC%EC%A0%80%20%EA%B0%88%EA%B2%8C%20(Feat.%20KURO).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%EC%82%AC%EC%8B%A4%EC%9D%80%20The%20Truth%20Is.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%EC%96%B4%EB%95%8C.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%EC%A0%84%ED%99%94%EA%B8%B0%EB%A5%BC%20%EA%BA%BC%EB%86%94%20Turn%20Off%20Your%20Phone%20(feat.%20Elo)%20%5BRemix%5D.mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%ED%8B%B0%EC%8A%88(TISSUE).mp3?raw=true",
+          "https://github.com/Carol047/Embed/blob/main/%ED%92%80%EC%96%B4.mp3?raw=true"        
+        ],
+        playPreviousTrackButton = $("#play-previous"),
+        playNextTrackButton = $("#play-next"),
+        currIndex = -1;
+    
+      function playPause() {
+        setTimeout(function () {
+          if (audio.paused) {
+            playerTrack.addClass("active");
+            albumArt.addClass("active");
+            checkBuffering();
+            i.attr("class", "fas fa-pause");
+            audio.play();
+          } else {
+            playerTrack.removeClass("active");
+            albumArt.removeClass("active");
+            clearInterval(buffInterval);
+            albumArt.removeClass("buffering");
+            i.attr("class", "fas fa-play");
+            audio.pause();
+          }
+        }, 300);
+      }
+    
+      function showHover(event) {
+        seekBarPos = sArea.offset();
+        seekT = event.clientX - seekBarPos.left;
+        seekLoc = audio.duration * (seekT / sArea.outerWidth());
+    
+        sHover.width(seekT);
+    
+        cM = seekLoc / 60;
+    
+        ctMinutes = Math.floor(cM);
+        ctSeconds = Math.floor(seekLoc - ctMinutes * 60);
+    
+        if (ctMinutes < 0 || ctSeconds < 0) return;
+    
+        if (ctMinutes < 0 || ctSeconds < 0) return;
+    
+        if (ctMinutes < 10) ctMinutes = "0" + ctMinutes;
+        if (ctSeconds < 10) ctSeconds = "0" + ctSeconds;
+    
+        if (isNaN(ctMinutes) || isNaN(ctSeconds)) insTime.text("--:--");
+        else insTime.text(ctMinutes + ":" + ctSeconds);
+    
+        insTime.css({ left: seekT, "margin-left": "-21px" }).fadeIn(0);
+      }
+    
+      function hideHover() {
+        sHover.width(0);
+        insTime.text("00:00").css({ left: "0px", "margin-left": "0px" }).fadeOut(0);
+      }
+    
+      function playFromClickedPos() {
+        audio.currentTime = seekLoc;
+        seekBar.width(seekT);
+        hideHover();
+      }
+    
+      function updateCurrTime() {
+        nTime = new Date();
+        nTime = nTime.getTime();
+    
+        if (!tFlag) {
+          tFlag = true;
+          trackTime.addClass("active");
+        }
+    
+        curMinutes = Math.floor(audio.currentTime / 60);
+        curSeconds = Math.floor(audio.currentTime - curMinutes * 60);
+    
+        durMinutes = Math.floor(audio.duration / 60);
+        durSeconds = Math.floor(audio.duration - durMinutes * 60);
+    
+        playProgress = (audio.currentTime / audio.duration) * 100;
+    
+        if (curMinutes < 10) curMinutes = "0" + curMinutes;
+        if (curSeconds < 10) curSeconds = "0" + curSeconds;
+    
+        if (durMinutes < 10) durMinutes = "0" + durMinutes;
+        if (durSeconds < 10) durSeconds = "0" + durSeconds;
+    
+        if (isNaN(curMinutes) || isNaN(curSeconds)) tProgress.text("00:00");
+        else tProgress.text(curMinutes + ":" + curSeconds);
+    
+        if (isNaN(durMinutes) || isNaN(durSeconds)) tTime.text("00:00");
+        else tTime.text(durMinutes + ":" + durSeconds);
+    
+        if (
+          isNaN(curMinutes) ||
+          isNaN(curSeconds) ||
+          isNaN(durMinutes) ||
+          isNaN(durSeconds)
+        )
+          trackTime.removeClass("active");
+        else trackTime.addClass("active");
+    
+        seekBar.width(playProgress + "%");
+    
+        if (playProgress == 100) {
+          i.attr("class", "fa fa-play");
+          seekBar.width(0);
+          tProgress.text("00:00");
+          albumArt.removeClass("buffering").removeClass("active");
+          clearInterval(buffInterval);
+        }
+      }
+    
+      function checkBuffering() {
+        clearInterval(buffInterval);
+        buffInterval = setInterval(function () {
+          if (nTime == 0 || bTime - nTime > 1000) albumArt.addClass("buffering");
+          else albumArt.removeClass("buffering");
+    
+          bTime = new Date();
+          bTime = bTime.getTime();
+        }, 100);
+      }
+    
+      function selectTrack(flag) {
+        if (flag == 0 || flag == 1) ++currIndex;
+        else --currIndex;
+    
+        if (currIndex > -1 && currIndex < albumArtworks.length) {
+          if (flag == 0) i.attr("class", "fa fa-play");
+          else {
+            albumArt.removeClass("buffering");
+            i.attr("class", "fa fa-pause");
+          }
+    
+          seekBar.width(0);
+          trackTime.removeClass("active");
+          tProgress.text("00:00");
+          tTime.text("00:00");
+    
+          currAlbum = albums[currIndex];
+          currTrackName = trackNames[currIndex];
+          currArtwork = albumArtworks[currIndex];
+    
+          audio.src = trackUrl[currIndex];
+    
+          nTime = 0;
+          bTime = new Date();
+          bTime = bTime.getTime();
+    
+          if (flag != 0) {
+            audio.play();
+            playerTrack.addClass("active");
+            albumArt.addClass("active");
+    
+            clearInterval(buffInterval);
+            checkBuffering();
+          }
+    
+          albumName.text(currAlbum);
+          trackName.text(currTrackName);
+          albumArt.find("img.active").removeClass("active");
+          $("#" + currArtwork).addClass("active");
+    
+          bgArtworkUrl = $("#" + currArtwork).attr("src");
+    
+          bgArtwork.css({ "background-image": "url(" + bgArtworkUrl + ")" });
+        } else {
+          if (flag == 0 || flag == 1) --currIndex;
+          else ++currIndex;
+        }
+      }
+    
+      function initPlayer() {
+        audio = new Audio();
+    
+        selectTrack(0);
+    
+        audio.loop = false;
+    
+        playPauseButton.on("click", playPause);
+    
+        sArea.mousemove(function (event) {
+          showHover(event);
+        });
+    
+        sArea.mouseout(hideHover);
+    
+        sArea.on("click", playFromClickedPos);
+    
+        $(audio).on("timeupdate", updateCurrTime);
+    
+        playPreviousTrackButton.on("click", function () {
+          selectTrack(-1);
+        });
+        playNextTrackButton.on("click", function () {
+          selectTrack(1);
+        });
+      }
+    
+      initPlayer();
+    });
+    
+    </script>
+    </body>
+    </html>
